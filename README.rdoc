@@ -12,6 +12,12 @@ server.
 - content includes its metadata ([acm]time, uid, gid, etc),
   this allows things like block and character devices,
   fifos, etc to be easily backed and restored
+- regular file content could be split into blocks that
+  are individually hashed to reduce transfers for huge
+  files only some of which have changed.  This is just
+  like directories are split into files and other directories,
+  except that the blocks have no associated metadata
+- should not cross mount points by defaults (--xdev [false])
 - similarly content can optionally include xattr/acl info
 - each backup set on the server contains only the changed
   files
