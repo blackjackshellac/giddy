@@ -1,0 +1,22 @@
+
+irb(main):007:0* Dir.glob '**/*'
+=> ["Rakefile", "lib", "tmp", "tmp/dot", "README.rdoc", "bin"]
+irb(main):008:0> Dir.glob '*'
+=> ["Rakefile", "lib", "tmp", "README.rdoc", "bin"]
+irb(main):009:0> a=Dir.glob '*'
+=> ["Rakefile", "lib", "tmp", "README.rdoc", "bin"]
+
+irb(main):014:0> File.stat('lib')
+=> #<File::Stat dev=0xfd00, ino=27000904, mode=040775, nlink=2, uid=1201, gid=1201, rdev=0x0, size=4096, blksize=4096, blocks=8, atime=2011-11-24 22:24:06 -0500, mtime=2011-11-24 22:21:27 -0500, ctime=2011-11-24 22:21:27 -0500>
+irb(main):015:0> File.stat('README.rdoc')
+=> #<File::Stat dev=0xfd00, ino=27000984, mode=0100664, nlink=1, uid=1201, gid=1201, rdev=0x0, size=1073, blksize=4096, blocks=8, atime=2011-11-25 06:21:25 -0500, mtime=2011-11-25 06:19:00 -0500, ctime=2011-11-25 06:21:05 -0500>
+
+irb(main):016:0> require 'digest/sha1'
+=> true
+irb(main):017:0> Digest::SHA1.hexdigest 'foo'
+=> "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
+irb(main):018:0> File.read("README.rdoc")
+=> "\n== Giddy\n\nI'm giddy for a client server based backup system written in\n[j]?ruby and using http[s]? to communicate between client and\nserver.\n\n=== Notes:\n\n- use sha1 (configurable) to identify file content\n- files and directories are both content (a la git)\n- content includes its metadata ([acm]time, uid, gid, etc),\n  this allows things like block and character devices,\n  fifos, etc to be easily backed and restored\n- similarly content can optionally include xattr/acl info\n- each backup set on the server contains only the changed\n  files\n- after the first backup, all backups are incremental\n\n==== Regex includes and excludes,\n\n$ giddy --include /home/(moe,curly,larry)\n$ giddy --exclude '*Cache*'\n\n==== Restores should be dead easy,\n\n$ cd ~/data/project\n$ giddy --restore important.file, ...\n\n==== List file versions \n\n$ giddy --list important.file\n\n==== Backups can be compressed,\n\n$ giddy --config compress [gzip, ...]\n\n==== Backups can be encrypted with one or more gpg keys,\n\n$ giddy --config encrypt gpg:my@email.org\n$ giddy --config encrypt gpg:your@email.org\n\n"
+irb(main):019:0> Digest::SHA1.hexdigest File.read("README.rdoc")
+=> "7669c65c596a73058a869e118cfeb2da687944e9"
+
