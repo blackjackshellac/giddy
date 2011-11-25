@@ -5,22 +5,24 @@ $:.unshift(rreqdir) unless $:.include?(rreqdir)
 
 require 'giddy/parser'
 
-class Giddy
+class Main
 	attr_reader :args
 
+	include Giddy
+
 	def initialize
-		@args=args
 	end
 
-	def parse_args
-		Giddy::parser(@args)
+	def parse_args(args)
+		parse(args)
 	end
 
 	def run
 	end
 end
 
-giddy=Giddy.new #(ARGV)
-giddy.parse_args
+giddy=Main.new
+giddy.parse_args(ARGV)
 giddy.run
+
 
