@@ -1,4 +1,13 @@
 
+== Sorting hashes to array for consistent hashing
+
+> ttt
+=> {"."=>{"stat"=>[0, 1, 2]}, ".."=>{"stat"=>[0, 1, 2]}, "file"=>{"stat"=>[0, 1, 2]}, "dir"=>{"stat"=>[0, 1, 2]}}
+> ttt.class
+=> Hash
+> ttt.sort
+=> [[".", {"stat"=>[0, 1, 2]}], ["..", {"stat"=>[0, 1, 2]}], ["dir", {"stat"=>[0, 1, 2]}], ["file", {"stat"=>[0, 1, 2]}]]
+
 == Hardlinks
 
 hardlink from metadata dir (directory tree) to content dir
