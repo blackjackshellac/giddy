@@ -1,0 +1,33 @@
+#
+# Directory object in json 
+#
+# sha1 is the content array, sorted, and converted to a string
+# Digest::SHA1.hexdigest(Dir.glob("{.*,*}").sort.to_s)
+#
+{
+   "sha1" : "4eaed9abf94001a3ae4a2b1274615f5946ba7557",
+   "content" : [
+      ".",
+      "..",
+      ".dir.json.swp",
+      "NOTES",
+      "NOTES~"
+   ],
+   "name" : ".",
+   "stat" : {
+      "ctime" : "2011-11-30 20:13:58 -0500",
+      "blksize" : 4096,
+      "rdev" : 0,
+      "blocks" : 8,
+      "uid" : 1201,
+      "mtime" : "2011-11-30 20:13:58 -0500",
+      "mode" : 16893,
+      "size" : 4096,
+      "nlink" : 2,
+      "atime" : "2011-11-30 20:15:10 -0500",
+      "ino" : 27001009,
+      "gid" : 1201
+   },
+   "acl": "",
+   "xattr": ""
+}
