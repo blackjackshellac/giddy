@@ -27,7 +27,7 @@ class Main
 	end
 
 	def run
-		finder=Find.find('/home/steeve/src/giddy')
+		finder=Find.find('/home/steeve/src')
 		finder.each { |file|
 			#s=File.lstat(file)
 			e=Gentry.new(file)

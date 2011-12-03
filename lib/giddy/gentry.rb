@@ -1,15 +1,38 @@
 
+require 'time'
 require 'digest/sha1'
+
 
 module Giddy
 	# http://www.ruby-doc.org/core-1.9.3/File/Stat.html
 	# can't seem to extend File::lstat, just File::Stat, sheet
 	class Gstat
 		attr_reader :name, :stat
+		attr_reader :size, :blocks, :blksize, :dev_major, :dev_minor, :ino, :nlink
+		attr_reader :mode, :uid, :gid, :atime, :mtime, :ctime, :ftype
 
 		def initialize(name)
-			@stat=File.lstat(name)
 			@name=name
+			setup_stats
+		end
+
+		# can also do acls or xattrs here
+		def setup_stats
+			@stat=File.lstat(@name)
+			@size=@stat.size
+			@blocks=@stat.blocks
+			@blksize=@stat.blksize
+			@dev_major=@stat.dev_major
+			@dev_minor=@stat.dev_minor
+			@ino=@stat.ino
+			@nlink=@stat.nlink
+			@mode=@stat.mode
+			@uid=@stat.uid
+			@gid=@stat.gid
+			@atime=@stat.atime
+			@mtime=@stat.mtime
+			@ctime=@stat.ctime
+			@ftype=@stat.ftype
 		end
 
 #    File: `giddy.rb'
@@ -24,8 +47,8 @@ module Giddy
 
 #Identifies the type of stat. The return string is one of: 
 #“file”, “directory”, “characterSpecial”, “blockSpecial”, “fifo”, “link”, “socket”, or “unknown”.
-		def type
-			case @stat.ftype
+		def ftype
+			case @ftype
 			when "file"
 				"f"
 			when "directory"
@@ -47,10 +70,11 @@ module Giddy
 
 		def pack
 			#size,blocks,blksize,ftype
-			#dev_major,dev_minor,ino,nlinks
+			#dev_major,dev_minor,ino,nlink
 			#mode,uid,gid
 			#atime,mtime,ctime
-			"%s:%s:%s:%s" % [ @stat.size,@stat.blocks,@stat.blksize,type ]
+			"%s:%s:%s:%s:0x%02x:0x%02x:%s,%s,0%o,%s,%s,%d,%d,%d" % 
+				[ @size,@blocks,@blksize,ftype,@dev_major,@dev_minor,@ino,@nlink,@mode,@uid,@gid,@atime.to_i,@mtime.to_i,@ctime.to_i ]
 		end
 
 		def dir?
@@ -100,16 +124,17 @@ module Giddy
 		def initialize(name)
 			@name=name
 			@stat=Gstat.new(name)
-			@sha1=Digest::SHA1.hexdigest(@name)
+			#@sha1=Digest::SHA1.hexdigest(@name)
+			@sha1=nil
 			puts "Dir=#{name}" if @stat.dir?
 		end
 
 		def to_json(*args)
-			{
-				"name"=>@name,
-				"stat"=>@stat.pack,
-				"sha1"=>@sha1
-			}
+			obj={}
+			obj["name"]=@name
+			obj["stat"]=@stat.pack
+			obj["sha1"]=@sha1
+			obj.to_json
 		end
 	end
 end
