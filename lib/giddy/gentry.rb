@@ -3,7 +3,7 @@ require 'time'
 require 'digest/sha1'
 
 
-module Giddy
+#module Giddy
 	# http://www.ruby-doc.org/core-1.9.3/File/Stat.html
 	# can't seem to extend File::lstat, just File::Stat, sheet
 	class Gstat
@@ -114,7 +114,8 @@ module Giddy
 		#name - dir entry name
 		#stat - dir entry stat object (packed)
 		#sha1 - dir entry content sha1
-		attr_reader :name, :stat, :sha1
+		attr_reader :name, :stat
+		attr_accessor :sha1
 
 		# if stat.directory?
 		#  content is the directory listing Dir.glob('{*,.*}'])
@@ -125,8 +126,22 @@ module Giddy
 			@name=name
 			@stat=Gstat.new(name)
 			#@sha1=Digest::SHA1.hexdigest(@name)
-			@sha1=nil
-			puts "Dir=#{name}" if @stat.dir?
+			@sha1=hexdigest(@name) if @stat.file?
+			#puts "Dir=#{name}" if @stat.dir?
+		end
+
+		BLKSIZE=4*1024*1024
+		def hexdigest(name)
+			sha=Digest::SHA1.new
+			sha1=nil
+			File.open(name, "rb") { |fd|
+				while true
+					block=fd.read(BLKSIZE)
+					break if block.nil?
+					sha1=sha.update(block)
+				end
+			}
+			sha1
 		end
 
 		def to_json(*args)
@@ -137,4 +152,4 @@ module Giddy
 			obj.to_json
 		end
 	end
-end
+#end

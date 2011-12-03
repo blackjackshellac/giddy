@@ -1,4 +1,29 @@
 
+$ irb
+irb(main):001:0> name="test"
+=> "test"
+irb(main):002:0> Digest::SHA1.hexdigest(name)
+NameError: uninitialized constant Object::Digest
+	from (irb):2
+		from /usr/local/bin/irb:12:in `<main>'
+		irb(main):003:0> require 'digest/sha1'
+		=> true
+		irb(main):004:0> sha1=Digest::SHA1.hexdigest(name)
+		=> "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+		irb(main):005:0> sha1.class
+		=> String
+		irb(main):006:0> d=Digest::SHA1.new
+		=> #<Digest::SHA1: da39a3ee5e6b4b0d3255bfef95601890afd80709>
+				irb(main):009:0> d.update("test")
+					=> #<Digest::SHA1: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3>
+					irb(main):010:0> d.update("test1")
+					=> #<Digest::SHA1: d41ff23e0e6147a8fd2722f68e53f993a92784b0>
+					irb(main):011:0> d.update("test2")
+					=> #<Digest::SHA1: c014e56afb92fbb76ea373ef410f3db3bb20bb37>
+					irb(main):012:0> d.hexdigest("testtest1test2")
+					=> "c014e56afb92fbb76ea373ef410f3db3bb20bb37"
+					irb(main):013:0> 
+
 == Sorting hashes to array for consistent hashing
 
 > ttt

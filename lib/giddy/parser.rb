@@ -4,7 +4,7 @@
 
 require 'optparse'
 
-module Giddy
+#module GiddyUtils
 	def parse(args)
 		opts = OptionParser.new
 		opts.on('-h', '--help', "Print help") { puts opts.to_s }
@@ -18,5 +18,5 @@ module Giddy
 		}
 		opts.parse!(args)
 	end
-end
+#end
 
