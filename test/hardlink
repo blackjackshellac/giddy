@@ -107,6 +107,7 @@ class Main
 	def run
 		@options[:include].each { |inc|
 			@entry_hash={}
+			@entry_cur=@entry_hash
 			begin
 				FileUtils.chdir(inc)
 			rescue
@@ -114,12 +115,13 @@ class Main
 				next
 			end
 			gfind(FileUtils.pwd)
+			#http://www.ruby-doc.org/stdlib-1.9.3/libdoc/json/rdoc/JSON.html
+			puts JSON.pretty_generate(@entry_hash, :max_nesting=>false)
 		}
 
 		puts JSON.pretty_generate(@stats)
 		#puts JSON.pretty_generate(@entry_hash)
 		#puts @entry_hash.to_yaml
-		#puts @entry_hash.to_json
 		#puts @entry_hash.to_s
 
 		#finder=Find.find('.')
