@@ -70,7 +70,7 @@ class Main
 		entries.each { |entry|
 			next if entry.eql?("..")
 			names<<entry
-			puts "  entry=.../#{dir}/#{entry}"
+			puts "  entry=#{dir}/#{entry}"
 			ge=Gentry.new(entry)
 			if ge.stat.dir?
 				@stats[:dirs]+=1
@@ -82,6 +82,7 @@ class Main
 			elsif ge.stat.file?
 				@stats[:files]+=1
 				@stats[:bytes]+=ge.stat.size
+				@entry_cur[entry]=ge
 			else
 				@entry_cur[entry]=ge
 			end
@@ -106,7 +107,13 @@ class Main
 	def run
 		@options[:include].each { |inc|
 			@entry_hash={}
-			gfind(inc)
+			begin
+				FileUtils.chdir(inc)
+			rescue
+				puts "Error: failed to change to include #{inc}"
+				next
+			end
+			gfind(FileUtils.pwd)
 		}
 
 		puts JSON.pretty_generate(@stats)
