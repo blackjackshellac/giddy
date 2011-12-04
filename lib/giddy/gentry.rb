@@ -2,7 +2,6 @@
 require 'time'
 require 'digest/sha1'
 
-
 #module Giddy
 	# http://www.ruby-doc.org/core-1.9.3/File/Stat.html
 	# can't seem to extend File::lstat, just File::Stat, sheet
@@ -132,6 +131,9 @@ require 'digest/sha1'
 
 		BLKSIZE=4*1024*1024
 		def hexdigest(name)
+			sha1=Digest::SHA1.new(name)
+			return
+
 			sha=Digest::SHA1.new
 			sha1=nil
 			File.open(name, "rb") { |fd|
