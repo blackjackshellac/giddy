@@ -119,6 +119,9 @@ class Main
 			puts JSON.pretty_generate(@entry_hash, :max_nesting=>false)
 		}
 
+		# fast JSON streaming (yet another json library)
+		# https://github.com/brianmario/yajl-ruby
+
 		puts JSON.pretty_generate(@stats)
 		#puts JSON.pretty_generate(@entry_hash)
 		#puts @entry_hash.to_yaml
