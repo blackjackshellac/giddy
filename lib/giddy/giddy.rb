@@ -152,7 +152,7 @@ class Main
 				# get each dir_entry in this sorted directory list
 				snames=names.sort.join(",")
 				$log.debug "entries=#{cur_dir}:#{snames}"
-				dir_hash["."].sha2=Digest::SHA2.new << snames
+				dir_hash["."].sha2=(Digest::SHA2.new << snames).to_s
 
 				write_dh cur_dir, dir_hash
 

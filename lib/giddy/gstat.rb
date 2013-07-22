@@ -101,17 +101,18 @@ class Gstat
 	end
 
 	def unpack(stats)
+		#puts "stats="+stats
 		stats=stats.split(/,/)	
 		#puts stats.inspect
 		@size=stats[0].to_i
 		@blocks=stats[1].to_i
 		@blksize=stats[2].to_i
 		@ftype=stats[3]
-		@dev_major=stats[4].to_i(16)
-		@dev_minor=stats[5].to_i(16)
+		@dev_major=stats[4].hex
+		@dev_minor=stats[5].hex
 		@ino=stats[6].to_i
 		@nlink=stats[7].to_i
-		@mode=stats[8].to_i(8)
+		@mode=stats[8].oct
 		@uid=stats[9].to_i
 		@gid=stats[10].to_i
 		@atime=stats[11].to_i

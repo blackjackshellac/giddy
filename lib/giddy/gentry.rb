@@ -8,6 +8,7 @@ rreqdir=File.expand_path(File.dirname(__FILE__))
 $:.unshift(rreqdir) unless $:.include?(rreqdir)
 
 require 'gstat'
+require 'glogger'
 
 # http://www.ruby-doc.org/core-1.9.3/File/Stat.html
 # can't seem to extend File::lstat, just File::Stat, sheet
@@ -17,6 +18,7 @@ class Gentry
 	#sha2 - dir entry content sha2
 	attr_reader :name
 	attr_accessor :sha2, :stat
+	attr_reader :content_dir, :content_file
 
 	BLKSIZE=4*1024*1024
 
@@ -34,15 +36,18 @@ class Gentry
 		@name=name
 		if o.nil?
 			@stat=Gstat.new(name)
-			@sha2=file_sha(@name) if @stat.file?
+			@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
 		elsif o.class == Array
-			#puts o.inspect
+			#puts "o="+o.inspect
 			@sha2=o[2]
 			@stat=Gstat.new(name, o[1])
 		elsif o.class == String
 			@stat=Gstat.new(name, o)
-			@sha2=file_sha(@name) if @stat.file?
+			@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
+		else
+			raise "unsupported input parameter class #{o.class}"
 		end
+		content
 	end
 
 	def eql?(other)
@@ -53,45 +58,63 @@ class Gentry
 		@stat.eql?(other.stat)
 	end
 
-	def file_sha(name)
-		sha=Digest::SHA2.new(256)
+	#
+	# calculate sha, or write file block by block,
+	# depending on the value of op
+	#
+	# If op.class == Digest::SHA2 updates sha block by block
+	# If op.class == File write to file block by block
+	def file_read_op(op, name=nil)
+		name=@name if name.nil?
 		File.open(name, "rb") { |fd|
 			while true
 				block=fd.read(BLKSIZE)
 				break if block.nil?
-				sha << block
+				op << block
 			end
 		}
-		sha.to_s
+		op
+	end
+
+	def content
+		return if @sha2.nil?
+		# split the sha1 string into four 2 character directories and a 64-(4*2)=56 character file
+		#puts "sha2="+@sha2
+		m=@sha2[/(\w{2})(\w{2})(\w{2})(\w{2})(\w+)/]
+		if m && m.eql?(@sha2)
+			@content_dir="%s/%s/%s/%s" % [ $1, $2, $3, $4 ]
+			@content_file=$5
+		else
+			raise "Failed to split sha2=#{@sha2}"
+		end
+		#puts "content="+@content_dir+"/"+@content_file
+	end
+
+	def save_content(backup_dir)
+		backup_dir="%s/%s" % [ backup_dir, @content_dir ]
+		backup_file="%s/%s" % [ backup_dir, @content_file ]
+		return if File.exists?(backup_file)
+		$log.debug "backup_file=#{backup_file}"
+		FileUtils.mkdir_p backup_dir
+		File.open(backup_file, "w+b") { |fd|
+			file_read_op(fd)
+		}
 	end
 
 	def to_json(*a)
-		obj={}
-		obj['json_class']=self.class.name
-		obj['data']=[ @name, @stat.pack ]
-		obj['data'] << @sha2 unless @sha2.nil?
-		#obj['name']=@name
-		#obj['stat']=@stat.pack
-		#obj['sha2']=@sha2
-		obj.to_json(*a)
+		o={
+			:json_class=>self.class.name,
+			:data=>[ @name, @stat.pack ]
+		}
+		o[:data] << @sha2 unless @sha2.nil?
+		o.to_json(*a)
 	end
 
 	def self.json_create(o)
+		raise "fuck me this is pissing me off" unless o.class == Hash
 		name=o['data'][0]
 		new(name, o['data'])
 	end
 
 end
 
-#ge=Gentry.new("gentry.rb")
-#
-#json=ge.to_json
-#
-#puts json
-#
-#gs=JSON.parse(json)
-#
-#puts gs.class
-#puts gs.inspect
-#puts gs.to_s
-#

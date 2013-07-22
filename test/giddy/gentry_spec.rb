@@ -21,6 +21,10 @@ describe Gentry do
 			@file_symlink="file_symlink"
 			@dir_symlink="dir_symlink"
 		}
+
+		@file_sha="64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"
+		@pack="10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943"
+		@json=%Q/{"json_class":"Gentry","data":["file","10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943","64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"]}/
 	end
 
 	before(:each) do
@@ -65,28 +69,39 @@ describe Gentry do
 
 		it "sets the sha for a file" do
 			ge=Gentry.new(@file)
-			ge.sha2.should == "64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"
+			ge.sha2.should == @file_sha
 		end
 
 		it "sets the gstat for a file" do
 			ge=Gentry.new(@file)
 			ge.stat.pack.should_not be nil
 		end
+
+		it "sets the content_dir and file" do
+			ge=Gentry.new(@file, @pack)
+			ge.content_dir.should == "64/07/4f/40"
+			ge.content_file.should == "a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"
+		end
 	end
 
 	describe "json tests" do
 		before(:each) do
-			@ge=Gentry.new(@file, "10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943")
-			@json=%Q/{"json_class":"Gentry","data":["file","10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943","64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"]}/
+			@ge=Gentry.new(@file, @pack)
 		end
 
 		it "converts Gentry to json" do
-			@ge.to_json.should == @json
+			js=@ge.to_json
+			#puts js
+			js.should == @json
 		end
 
-		it "parses json to a Gentry" do
-			ge=JSON.parse(@json)
-			ge.should == @ge
+		it "parses json to a Gentry",:parse=>true do
+			ge=Gentry.json_create(JSON.parse(@json))
+			#ge=JSON.parse(@json, :create_additions => true)
+			#ge=JSON.load(@json)
+			ge.class.should == Gentry
+			#puts ge.inspect
+			ge.eql?(@ge).should == true
 		end
 	end
 
