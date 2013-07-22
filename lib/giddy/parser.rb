@@ -3,20 +3,34 @@
 #
 
 require 'optparse'
+require 'glogger'
 
-module Giddy
+#module GiddyUtils
 	def parse(args)
-		opts = OptionParser.new
-		opts.on('-h', '--help', "Print help") { puts opts.to_s }
-		opts.on('-v', '--version', "Version") { puts "too early to tell" }
-		opts.on('-d', '--debug', "Debug") { puts "debug me" }
-		opts.on('-i', '--include INC', String, "Files/directories to be included") { |inc|
-			puts "Including #{inc}"
+		@options={
+			:include=>[],
+			:exclude=>[],
+			:debug=>false,
+			:dryrun=>false
 		}
-		opts.on('-x', '--exclude EXC', String, "Files/directories to be excluded") { |exc|
-			puts "Excluding #{exc}"
+		opts = OptionParser.new
+		opts.on('-h', '--help', "Print help") { puts opts.to_s; exit 0 }
+		opts.on('-v', '--version', "Version") { puts "too early to tell" }
+
+		# boolean options
+		opts.on('-d', '--debug', "Debug") { @options[:debug]=true }
+		opts.on('-n', '--dry-run', "Just a run through, don't perform backup") { @options[:dryrun]=true }
+
+		opts.on('-i', '--include INC', Array, "Files/directories to be included") { |inc|
+			@options[:include] += inc
+		}
+		opts.on('-x', '--exclude EXC', Array, "Files/directories to be excluded") { |exc|
+			@options[:exclude] += exc
 		}
 		opts.parse!(args)
+		$log.debug "Including #{@options[:include].inspect}"
+		$log.debug "Excluding #{@options[:exclude].inspect}"
+		@options
 	end
-end
+#end
 

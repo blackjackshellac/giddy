@@ -1,7 +1,7 @@
 
 require 'digest/sha1'
 
-module Giddy
+#module Giddy
 	class GFile < File
 		attr_reader :content, :content_sha1, :content_dir, :content_file
 		attr_reader :file, :path, :stat
@@ -51,4 +51,4 @@ module Giddy
 			@stat.symlink?
 		end
 	end
-end
+#end
