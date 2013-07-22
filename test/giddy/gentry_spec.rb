@@ -1,5 +1,5 @@
 #
-#
+# Giddy file entries
 #
 
 require 'fileutils'
@@ -71,6 +71,22 @@ describe Gentry do
 		it "sets the gstat for a file" do
 			ge=Gentry.new(@file)
 			ge.stat.pack.should_not be nil
+		end
+	end
+
+	describe "json tests" do
+		before(:each) do
+			@ge=Gentry.new(@file, "10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943")
+			@json=%Q/{"json_class":"Gentry","data":["file","10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943","64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"]}/
+		end
+
+		it "converts Gentry to json" do
+			@ge.to_json.should == @json
+		end
+
+		it "parses json to a Gentry" do
+			ge=JSON.parse(@json)
+			ge.should == @ge
 		end
 	end
 

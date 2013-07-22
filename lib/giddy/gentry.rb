@@ -15,8 +15,8 @@ class Gentry
 	#name - dir entry name
 	#stat - dir entry stat object (packed)
 	#sha2 - dir entry content sha2
-	attr_reader :name, :stat
-	attr_accessor :sha2
+	attr_reader :name
+	attr_accessor :sha2, :stat
 
 	BLKSIZE=4*1024*1024
 
@@ -25,6 +25,10 @@ class Gentry
 	# if stat.file?
 	#  content is the file's content, read in block by block
 	#  http://www.ruby-doc.org/stdlib-1.9.3/libdoc/digest/rdoc/Digest/HMAC.html#method-i-digest_length
+	#
+	#  name - file/dir/symlink/... name
+	#  o    - if Array [ name, packed_stat, sha2 ]
+	#  o    - if String - packed_stat (mostly for testing)
 	def initialize(name, o=nil)
 		raise "name cannot be null" if name.nil?
 		@name=name
@@ -32,9 +36,12 @@ class Gentry
 			@stat=Gstat.new(name)
 			@sha2=file_sha(@name) if @stat.file?
 		elsif o.class == Array
-			puts o.inspect
-			@sha2=o['data'][2]
-			@stat=Gstat.new(name, o['data'][1])
+			#puts o.inspect
+			@sha2=o[2]
+			@stat=Gstat.new(name, o[1])
+		elsif o.class == String
+			@stat=Gstat.new(name, o)
+			@sha2=file_sha(@name) if @stat.file?
 		end
 	end
 
@@ -71,7 +78,7 @@ class Gentry
 
 	def self.json_create(o)
 		name=o['data'][0]
-		new(name, o)
+		new(name, o['data'])
 	end
 
 end
