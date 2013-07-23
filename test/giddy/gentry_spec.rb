@@ -24,7 +24,8 @@ describe Gentry do
 
 		@file_sha="64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"
 		@pack="10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943"
-		@json=%Q/{"json_class":"Gentry","data":["file","10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943","64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"]}/
+		#@json=%Q/{"json_class":"Gentry","data":["file","10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943","64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"]}/
+		@json=%Q/{"name":"file","stat":"10,8,4096,f,0xfd,0x00,27131915,1,0100664,1201,1201,1374430943,1374430943,1374430943","sha2":"64074f40a6bd6941b68f48dd0c70ffd815e376a4cc0a799052bf390c2363ca33"}/
 	end
 
 	before(:each) do
@@ -96,9 +97,7 @@ describe Gentry do
 		end
 
 		it "parses json to a Gentry",:parse=>true do
-			#ge=Gentry.json_create(JSON.parse(@json))
-			#ge=JSON.parse(@json, :create_additions => true)
-			ge=JSON.load(@json)
+			ge=Gentry.from_json(@json)
 			ge.class.should == Gentry
 			#puts ge.inspect
 			ge.eql?(@ge).should == true

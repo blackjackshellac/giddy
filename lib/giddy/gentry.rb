@@ -41,6 +41,9 @@ class Gentry
 			#puts "o="+o.inspect
 			@sha2=o[2]
 			@stat=Gstat.new(name, o[1])
+		elsif o.class == Hash
+			@stat=Gstat.new(name, o["stat"])
+			@sha2=o["sha2"] if o.has_key?("sha2")
 		elsif o.class == String
 			@stat=Gstat.new(name, o)
 			@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
@@ -106,17 +109,20 @@ class Gentry
 
 	def to_json(*a)
 		o={
-			:json_class=>self.class.name,
-			:data=>[ @name, @stat.pack ]
+			:name=>@name,
+			:stat=>@stat.pack
 		}
-		o[:data] << @sha2 unless @sha2.nil?
+		o[:sha2] = @sha2 unless @sha2.nil?
 		o.to_json(*a)
 	end
 
-	def self.json_create(o)
-		raise "fuck me this is pissing me off" unless o.class == Hash
-		name=o['data'][0]
-		new(name, o['data'])
+	def self.from_json(j)
+		o=JSON.parse(j)
+		from_hash(o) #new(o["name"], o)
+	end
+
+	def self.from_hash(o)
+		new(o["name"], o)
 	end
 
 end

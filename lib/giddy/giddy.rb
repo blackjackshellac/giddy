@@ -23,6 +23,8 @@ class Main
 		@backup_dir="/home/backup/giddy"
 		@content_dir="#{@backup_dir}/.content"
 		@stats={
+			:start_time=>Time.now,
+			:end_time=>nil,
 			:bytes=>0,
 			:bps=>0,
 			:file=>0,
@@ -133,7 +135,7 @@ class Main
 						@stats[:file]+=1
 						@stats[:bytes]+=ge.stat.size
 						if old_hash.has_key?(dir_entry)
-							oge=old_hash[dir_entry]
+							oge=Gentry.from_hash(old_hash[dir_entry])
 							puts "oge="+oge.to_json
 							if ge.eql?(oge)
 								$log.debug "found #{dir_entry} in old_hash: the same as new entry"
@@ -156,7 +158,6 @@ class Main
 				dir_hash["."].sha2=(Digest::SHA2.new << snames).to_s
 
 				write_dh cur_dir, dir_hash
-
 			}
 		rescue => e
 			$log.debug "e="+e.message
@@ -173,6 +174,8 @@ class Main
 	end
 
 	def run
+		@stats[:start_time]=Time.now.to_f
+
 		@options[:include].each { |inc|
 			begin
 				FileUtils.chdir(inc) {
@@ -183,6 +186,10 @@ class Main
 				next
 			end
 		}
+
+		@stats[:end_time]=Time.now.to_f
+
+		@stats[:elapsed_time]=@stats[:end_time]-@stats[:start_time]
 
 		# fast JSON streaming (yet another json library)
 		# https://github.com/brianmario/yajl-ruby
