@@ -96,9 +96,9 @@ describe Gentry do
 		end
 
 		it "parses json to a Gentry",:parse=>true do
-			ge=Gentry.json_create(JSON.parse(@json))
+			#ge=Gentry.json_create(JSON.parse(@json))
 			#ge=JSON.parse(@json, :create_additions => true)
-			#ge=JSON.load(@json)
+			ge=JSON.load(@json)
 			ge.class.should == Gentry
 			#puts ge.inspect
 			ge.eql?(@ge).should == true
