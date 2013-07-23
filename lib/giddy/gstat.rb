@@ -17,7 +17,11 @@ class Gstat
 		else
 			unpack(stats)
 		end
-		@stat_sha2=(Digest::SHA2.new(256) << pack).to_s
+		@stat_sha2=sha_str(pack)
+	end
+
+	def sha_str(str)
+		(Digest::SHA2.new(256) << str).to_s
 	end
 
 	#		def to_json(*a)

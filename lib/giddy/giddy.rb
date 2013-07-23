@@ -136,11 +136,12 @@ class Main
 							oge=old_hash[dir_entry]
 							puts "oge="+oge.to_json
 							if ge.eql?(oge)
-								$log.debug "found #{dir_entry} in old_hash same as new entry"
+								$log.debug "found #{dir_entry} in old_hash: the same as new entry"
 							else
-								$log.debug "found #{dir_entry} in old_hash differs from new entry"
+								$log.debug "found #{dir_entry} in old_hash: not the same as new entry"
 							end
 						end
+						ge.save_content(@content_dir)
 						#dir_hash[dir_entry]=ge
 					else
 						#dir_hash[dir_entry]=ge

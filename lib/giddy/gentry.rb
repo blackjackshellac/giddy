@@ -93,12 +93,15 @@ class Gentry
 	def save_content(backup_dir)
 		backup_dir="%s/%s" % [ backup_dir, @content_dir ]
 		backup_file="%s/%s" % [ backup_dir, @content_file ]
-		return if File.exists?(backup_file)
-		$log.debug "backup_file=#{backup_file}"
-		FileUtils.mkdir_p backup_dir
-		File.open(backup_file, "w+b") { |fd|
-			file_read_op(fd)
-		}
+		if File.exists?(backup_file)
+			$log.debug "content file already exists: backup_file"
+		else
+			$log.debug "content file=#{backup_file}"
+			FileUtils.mkdir_p backup_dir
+			File.open(backup_file, "w+b") { |fd|
+				file_read_op(fd)
+			}
+		end
 	end
 
 	def to_json(*a)
