@@ -9,12 +9,12 @@ require 'benchmark'
 rreqdir=File.expand_path(File.dirname(__FILE__))
 $:.unshift(rreqdir) unless $:.include?(rreqdir)
 
-require 'parser'
+require 'giddyutils'
 require 'gfile'
 require 'gentry'
 require 'glogger'
 
-class Main
+class Giddy
 	attr_reader :args, :content_dir, :excludes
 
 	GIDDYDATA="/giddydata.json"
@@ -34,7 +34,12 @@ class Main
 	end
 
 	def parse_args(args)
-		@options=parse(args)
+		@options=GiddyUtils.parse(args)
+
+		set_logger(@options[:log_stream], @options[:log_level], @options[:log_rotate])
+
+		$log.debug "Including #{@options[:include].inspect}"
+		$log.debug "Excluding #{@options[:exclude].inspect}"
 
 		@excludes = {
 			:file=>[],
@@ -199,8 +204,4 @@ class Main
 	end
 end
 
-set_logger(STDOUT, Logger::DEBUG)
-
-giddy=Main.new(ARGV)
-giddy.run
 

@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+rreqdir=File.expand_path(File.dirname(__FILE__))
+$:.unshift(rreqdir) unless $:.include?(rreqdir)
+
+require 'giddy'
+
+giddy=Giddy.new(ARGV)
+giddy.run
+
