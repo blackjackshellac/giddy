@@ -9,32 +9,31 @@ require 'benchmark'
 rreqdir=File.expand_path(File.dirname(__FILE__))
 $:.unshift(rreqdir) unless $:.include?(rreqdir)
 
+require 'giddyconfig'
 require 'giddyutils'
-require 'gfile'
+#require 'gfile'
 require 'gentry'
 require 'glogger'
 
 class Giddy
-	attr_reader :args, :content_dir, :excludes
+	attr_reader :args, :content_dir, :excludes, :config, :options
 
 	GIDDYDATA="/giddydata.json"
 
 	def initialize(args)
-		@backup_dir="/home/backup/giddy"
-		@content_dir="#{@backup_dir}/.content"
-		@stats={
-			:start_time=>Time.now,
-			:end_time=>nil,
-			:bytes=>0,
-			:bps=>0,
-			:file=>0,
-			:dir=>0
-		}
+		@config=GiddyConfig.new
 		@options=parse_args(args)
+
+		@backup_dir=@config.backup_dir
+		@content_dir=@config.content_dir
+		@backups=@config.backups
+		@stats=@config.stats
 	end
 
 	def parse_args(args)
 		@options=GiddyUtils.parse(args)
+
+		$log.debug @options.inspect
 
 		set_logger(@options[:log_stream], @options[:log_level], @options[:log_rotate])
 
@@ -99,7 +98,7 @@ class Giddy
 
 		File.open(ofile, "w+") { |fd|
 			fd.write json
-			puts json
+			$log.debug json
 		}
 
 	end
@@ -124,7 +123,7 @@ class Giddy
 				dir_hash={}
 				old_hash=read_dh(cur_dir)
 				$log.debug "Changed to #{cur_dir}: old_hash=#{dir_hash.inspect}"
-				puts old_hash.inspect
+				$log.debug old_hash.inspect
 				names=[]
 				entries=Dir.glob("{*,.*}")
 				entries.each { |dir_entry|
@@ -132,16 +131,18 @@ class Giddy
 
 					ge=Gentry.new(dir_entry)
 					if ge.stat.dir?
+						$log.info "Backup dir #{cur_dir}/#{dir_entry}"
 						next if is_excluded(dir_entry, :dir)
 						@stats[:dir]+=1
 						gfind(dir_entry) unless dir_entry.eql?('.')
 					elsif ge.stat.file?
+						$log.info "Backup file #{cur_dir}/#{dir_entry}"
 						next if is_excluded(dir_entry, :file)
 						@stats[:file]+=1
 						@stats[:bytes]+=ge.stat.size
 						if old_hash.has_key?(dir_entry)
 							oge=Gentry.from_hash(old_hash[dir_entry])
-							puts "oge="+oge.to_json
+							$log.debug "oge="+oge.to_json
 							if ge.eql?(oge)
 								$log.debug "found #{dir_entry} in old_hash: the same as new entry"
 							else
@@ -178,7 +179,7 @@ class Giddy
 
 	end
 
-	def run
+	def backup
 		@stats[:start_time]=Time.now.to_f
 
 		@options[:include].each { |inc|
@@ -199,7 +200,7 @@ class Giddy
 		# fast JSON streaming (yet another json library)
 		# https://github.com/brianmario/yajl-ruby
 
-		puts JSON.pretty_generate(@stats)
+		$log.info JSON.pretty_generate(@stats)
 
 	end
 end

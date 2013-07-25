@@ -10,7 +10,6 @@ class Logger
 end
 
 def set_logger(stream, level, rotate='daily')
-		puts "c=#{stream.class}"
 		case stream
 		when IO
 			$log = Logger.new(stream)

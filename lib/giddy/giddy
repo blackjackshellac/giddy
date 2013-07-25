@@ -6,5 +6,22 @@ $:.unshift(rreqdir) unless $:.include?(rreqdir)
 require 'giddy'
 
 giddy=Giddy.new(ARGV)
-giddy.run
+
+action=giddy.options[:action]
+
+case action
+when :INIT
+	$log.debug "Initializing giddy"
+	giddy.config.init
+when :LIST
+	giddy.list
+when :BACKUP
+	giddy.backup
+when :UPDATE
+	giddy.update
+when :DELETE
+	giddy.delete
+else
+	$log.die "Unknown action"
+end
 

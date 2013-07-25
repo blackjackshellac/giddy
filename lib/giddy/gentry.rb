@@ -97,7 +97,7 @@ class Gentry
 		backup_dir="%s/%s" % [ backup_dir, @content_dir ]
 		backup_file="%s/%s" % [ backup_dir, @content_file ]
 		if File.exists?(backup_file)
-			$log.debug "content file already exists: backup_file"
+			$log.debug "content file already exists: #{backup_file}"
 		else
 			$log.debug "content file=#{backup_file}"
 			FileUtils.mkdir_p backup_dir

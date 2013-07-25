@@ -6,7 +6,6 @@ require 'optparse'
 require 'glogger'
 
 module GiddyUtils
-
 	def GiddyUtils.parse(args)
 		@options={
 			:include=>[],
@@ -18,16 +17,17 @@ module GiddyUtils
 			:log_level=>Logger::INFO,
 			:log_stream=>STDERR
 		}
-		parser = OptionParser.new { |opts|
+		op = OptionParser.new { |opts|
 			opts.on('-h', '--help', "Print help") {
 				puts opts.to_s; exit 0
+			}
+			opts.on('--init', "Initialize giddy") {
+				@options[:action]=:INIT
 			}
 			opts.on('-v', '--version', "Version") {
 				puts "too early to tell"
 			}
-
-			# boolean options
-			opts.on('-d', '--debug', "Debug") {
+			opts.on('-D', '--debug', "Debug") {
 				@options[:debug]=true
 				@options[:log_level]=Logger::DEBUG
 			}
@@ -55,8 +55,9 @@ module GiddyUtils
 			opts.on('-l', '--list', "List available backups") {
 				@options[:action]=:LIST
 			}
-			opts.on('-b', '--backup [NAME]', String, "Create new backup") {
+			opts.on('-b', '--backup [NAME]', String, "Create new backup (default #{Time.now.strftime("%Y%m%d")})") { |name|
 				@options[:action]=:BACKUP
+				@options[:backup]=name || Time.now.strftime("%Y%m%d")
 			}
 			opts.on('-u', '--update', "") {
 				@options[:action]=:UPDATE
@@ -65,7 +66,7 @@ module GiddyUtils
 				@options[:action]=:DELETE
 			}
 		}
-		parser.parse!(args)
+		op.parse!(args)
 		@options
 	end
 end
