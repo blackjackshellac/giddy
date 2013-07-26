@@ -3,6 +3,16 @@
 rreqdir=File.expand_path(File.dirname(__FILE__))
 $:.unshift(rreqdir) unless $:.include?(rreqdir)
 
+$stop=false
+
+Kernel.trap("INT") {
+	$stop=true
+}
+
+Kernel.trap("TERM") {
+	$stop=true
+}
+
 require 'giddy'
 
 giddy=Giddy.new(ARGV)

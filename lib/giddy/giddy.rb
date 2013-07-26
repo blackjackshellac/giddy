@@ -11,7 +11,6 @@ $:.unshift(rreqdir) unless $:.include?(rreqdir)
 
 require 'giddyconfig'
 require 'giddyutils'
-#require 'gfile'
 require 'gentry'
 require 'glogger'
 
@@ -24,7 +23,7 @@ class Giddy
 		@config=GiddyConfig.new
 		@options=parse_args(args)
 
-		@backup_dir=@config.backup_dir
+		@backup_dir=@config.backup_dir + "/" + @options[:backup]
 		@content_dir=@config.content_dir
 		@backups=@config.backups
 		@stats=@config.stats
@@ -128,6 +127,7 @@ class Giddy
 				entries=Dir.glob("{*,.*}")
 				entries.each { |dir_entry|
 					next if dir_entry.eql?("..")
+					break if $stop
 
 					ge=Gentry.new(dir_entry)
 					if ge.stat.dir?
@@ -148,9 +148,10 @@ class Giddy
 							else
 								$log.debug "found #{dir_entry} in old_hash: not the same as new entry"
 							end
+						else
+							oge=nil
 						end
-						ge.save_content(@content_dir)
-						#dir_hash[dir_entry]=ge
+						ge.save_content(@content_dir) unless $stop
 					else
 						#dir_hash[dir_entry]=ge
 					end
@@ -163,7 +164,7 @@ class Giddy
 				$log.debug "entries=#{cur_dir}:#{snames}"
 				dir_hash["."].sha2=(Digest::SHA2.new << snames).to_s
 
-				write_dh cur_dir, dir_hash
+				write_dh cur_dir, dir_hash unless $stop
 			}
 		rescue => e
 			$log.debug "e="+e.message

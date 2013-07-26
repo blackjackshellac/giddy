@@ -59,6 +59,10 @@ module GiddyUtils
 				@options[:action]=:BACKUP
 				@options[:backup]=name || Time.now.strftime("%Y%m%d")
 			}
+			opts.on('--verify', String, "Verify content directory data") {
+				@options[:action]=:VERIFY
+			}
+
 			opts.on('-u', '--update', "") {
 				@options[:action]=:UPDATE
 			}
