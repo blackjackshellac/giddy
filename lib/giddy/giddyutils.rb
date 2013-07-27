@@ -15,7 +15,8 @@ module GiddyUtils
 			:action=>:LIST,
 			:log_rotate=>'daily',
 			:log_level=>Logger::INFO,
-			:log_stream=>STDERR
+			:log_stream=>STDERR,
+			:backup=>Time.now.strftime("%Y%m%d")
 		}
 		op = OptionParser.new { |opts|
 			opts.on('-h', '--help', "Print help") {

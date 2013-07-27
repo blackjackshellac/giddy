@@ -3,6 +3,7 @@
 require 'time'
 require 'digest/sha2'
 require 'json'
+require 'tempfile'
 
 rreqdir=File.expand_path(File.dirname(__FILE__))
 $:.unshift(rreqdir) unless $:.include?(rreqdir)
@@ -34,9 +35,10 @@ class Gentry
 	def initialize(name, o=nil)
 		raise "name cannot be null" if name.nil?
 		@name=name
+		@sha2=nil
 		if o.nil?
 			@stat=Gstat.new(name)
-			@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
+			#@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
 		elsif o.class == Array
 			#puts "o="+o.inspect
 			@sha2=o[2]
@@ -46,17 +48,17 @@ class Gentry
 			@sha2=o["sha2"] if o.has_key?("sha2")
 		elsif o.class == String
 			@stat=Gstat.new(name, o)
-			@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
+			#@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
 		else
 			raise "unsupported input parameter class #{o.class}"
 		end
-		content
+		make_content_path
 	end
 
 	def eql?(other)
 		return false if other.nil?
 		return false unless @name.eql?(other.name)
-		return false unless @sha2.eql?(other.sha2)
+		#return false unless @sha2.eql?(other.sha2)
 		return false if other.stat.nil?
 		@stat.eql?(other.stat)
 	end
@@ -69,17 +71,20 @@ class Gentry
 	# If op.class == File write to file block by block
 	def file_read_op(op, name=nil)
 		name=@name if name.nil?
+		sha2=Digest::SHA2.new(256)
 		File.open(name, "rb") { |fd|
 			while true
 				block=fd.read(BLKSIZE)
 				break if block.nil?
 				op << block
+				sha2 << block
 			end
 		}
+		@sha2=sha2.to_s
 		op
 	end
 
-	def content
+	def make_content_path
 		return if @sha2.nil?
 		# split the sha1 string into four 2 character directories and a 64-(4*2)=56 character file
 		#puts "sha2="+@sha2
@@ -93,17 +98,43 @@ class Gentry
 		#puts "content="+@content_dir+"/"+@content_file
 	end
 
-	def save_content(backup_dir)
+	def save_content(backup_dir, force=false)
+		#backup_dir="%s/%s" % [ backup_dir, @content_dir ]
+		#backup_file="%s/%s" % [ backup_dir, @content_file ]
+		#if File.exists?(backup_file)
+		#	$log.debug "content file already exists: #{backup_file}"
+		#else
+		#	$log.debug "content file=#{backup_file}"
+		#	FileUtils.mkdir_p backup_dir
+		#	File.open(backup_file, "w+b") { |fd|
+		#		file_read_op(fd)
+		#	}
+		#end
+		tmpname=Dir::Tmpname.make_tmpname @name, nil
+		tmp_backup="%s/%s" % [ backup_dir, tmpname ]
+		$log.debug "tmp content file=#{tmp_backup}"
+		File.open(tmp_backup, "w+b") { |fd|
+			file_read_op(fd)
+		}
+
+		# create sha2 for the file just copied
+		make_content_path
+
 		backup_dir="%s/%s" % [ backup_dir, @content_dir ]
-		backup_file="%s/%s" % [ backup_dir, @content_file ]
-		if File.exists?(backup_file)
-			$log.debug "content file already exists: #{backup_file}"
-		else
-			$log.debug "content file=#{backup_file}"
+		content_path="%s/%s" % [ backup_dir, @content_file ]
+		if File.exists?(content_path)
+			if force
+				$log.warn "backup file already exists, replacing its content: #{content_path}"
+				FileUtils.rm_f content_path
+			else
+				$log.debug "backup content exists, don't update content: #{content_path}"
+			end
+		end
+		unless File.exists?(content_path)
+			$log.debug "mkdir_p #{backup_dir}"
 			FileUtils.mkdir_p backup_dir
-			File.open(backup_file, "w+b") { |fd|
-				file_read_op(fd)
-			}
+			$log.debug "mv #{tmp_backup} #{content_path}"
+			FileUtils.mv tmp_backup, content_path
 		end
 	end
 

@@ -140,18 +140,21 @@ class Giddy
 						next if is_excluded(dir_entry, :file)
 						@stats[:file]+=1
 						@stats[:bytes]+=ge.stat.size
+						save_content=true
 						if old_hash.has_key?(dir_entry)
 							oge=Gentry.from_hash(old_hash[dir_entry])
 							$log.debug "oge="+oge.to_json
 							if ge.eql?(oge)
-								$log.debug "found #{dir_entry} in old_hash: the same as new entry"
+								$log.debug "found entry in old_hash - SAME: #{dir_entry}"
+								save_content=false
 							else
-								$log.debug "found #{dir_entry} in old_hash: not the same as new entry"
+								$log.debug "found entry in old_hash - DIFFERS: #{dir_entry}"
 							end
 						else
 							oge=nil
 						end
-						ge.save_content(@content_dir) unless $stop
+						save_content=false if $stop
+						ge.save_content(@content_dir) if save_content
 					else
 						#dir_hash[dir_entry]=ge
 					end
@@ -197,6 +200,8 @@ class Giddy
 		@stats[:end_time]=Time.now.to_f
 
 		@stats[:elapsed_time]=@stats[:end_time]-@stats[:start_time]
+		@stats[:elapsed_time]=1 if @stats[:elapsed_time] <= 0
+		@stats[:bps]=@stats[:bytes] / @stats[:elapsed_time]
 
 		# fast JSON streaming (yet another json library)
 		# https://github.com/brianmario/yajl-ruby
