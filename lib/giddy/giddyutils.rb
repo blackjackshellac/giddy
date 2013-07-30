@@ -1,11 +1,25 @@
 #!/usr/bin/env ruby
-# 
+#
 #
 
 require 'optparse'
 require 'glogger'
 
 module GiddyUtils
+	def GiddyUtils.daemonize_app
+		if RUBY_VERSION < "1.9"
+			exit if fork
+			Process.setsid
+			exit if fork
+			Dir.chdir "/"
+			STDIN.reopen "/dev/null"
+			STDOUT.reopen "/dev/null", "a"
+			STDERR.reopen "/dev/null", "a"
+		else
+			Process.daemon
+		end
+	end
+
 	def GiddyUtils.parse(args)
 		@options={
 			:include=>[],
@@ -16,7 +30,8 @@ module GiddyUtils
 			:log_rotate=>'daily',
 			:log_level=>Logger::INFO,
 			:log_stream=>STDERR,
-			:backup=>Time.now.strftime("%Y%m%d")
+			:backup=>Time.now.strftime("%Y%m%d"),
+			:daemonize=>false
 		}
 		op = OptionParser.new { |opts|
 			opts.on('-h', '--help', "Print help") {
@@ -32,14 +47,18 @@ module GiddyUtils
 				@options[:debug]=true
 				@options[:log_level]=Logger::DEBUG
 			}
+			opts.on('-B', '--background', "Daemonize the script") {
+				@options[:daemonize]=true
+				@options[:log_stream]="giddy.log"
+			}
 
-			opts.on('-L', '--log DIR', "Log directory") { |dir|
-				if dir.eql?("stdout")
+			opts.on('-L', '--log FILE', "Log file") { |file|
+				if file.eql?("stdout")
 					@options[:log_stream]=STDOUT
-				elsif dir.eql?("stderr")
+				elsif file.eql?("stderr")
 					@options[:log_stream]=STDERR
 				else
-					@options[:log_stream]=dir
+					@options[:log_stream]=file
 				end
 			}
 

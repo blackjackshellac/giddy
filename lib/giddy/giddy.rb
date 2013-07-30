@@ -5,6 +5,7 @@ require 'fileutils'
 require 'digest/sha2'
 require 'json'
 require 'benchmark'
+require 'zlib'
 
 rreqdir=File.expand_path(File.dirname(__FILE__))
 $:.unshift(rreqdir) unless $:.include?(rreqdir)
@@ -21,12 +22,17 @@ class Giddy
 
 	def initialize(args)
 		@config=GiddyConfig.new
-		@options=parse_args(args)
 
-		@backup_dir=@config.backup_dir + "/" + @options[:backup]
 		@content_dir=@config.content_dir
 		@backups=@config.backups
 		@stats=@config.stats
+		@log_dir=@config.log_dir
+
+		@options=parse_args(args)
+
+		@backup_dir=@config.backup_dir + "/" + @options[:backup]
+		@zmeta=@config.compress[:metadata]
+		@zcont=@config.compress[:content]
 	end
 
 	def parse_args(args)
@@ -34,7 +40,7 @@ class Giddy
 
 		$log.debug @options.inspect
 
-		set_logger(@options[:log_stream], @options[:log_level], @options[:log_rotate])
+		set_logger(@options[:log_stream], @options[:log_level], :rotate=>@options[:log_rotate], :log_dir=>@log_dir)
 
 		$log.debug "Including #{@options[:include].inspect}"
 		$log.debug "Excluding #{@options[:exclude].inspect}"
@@ -88,29 +94,45 @@ class Giddy
 	end
 
 	def write_dh(cur_dir, dir_hash)
-
 		backup_dir=@backup_dir+cur_dir
 		FileUtils.mkdir_p(backup_dir)
-		ofile=backup_dir+GIDDYDATA
 
+		ofile=backup_dir+GIDDYDATA
 		json=JSON.pretty_generate(dir_hash, :max_nesting=>false)
 
-		File.open(ofile, "w+") { |fd|
-			fd.write json
-			$log.debug json
-		}
-
+		ogz=ofile+".gz"
+		if @zmeta
+			FileUtils.rm_f ofile if File.exists?(ofile)
+			File.open(ogz, "w+b") { |fd|
+					gz=Zlib::GzipWriter.new(fd, Zlib::DEFAULT_COMPRESSION)
+					gz.write json
+					gz.close
+			}
+		else
+			FileUtils.rm_f ogz if File.exists?(ogz)
+			File.open(ofile, "w+") { |fd|
+				fd.write json
+			}
+		end
 	end
 
 	def read_dh(cur_dir)
 		backup_dir=@backup_dir+cur_dir
 		FileUtils.mkdir_p(backup_dir)
 		ifile=backup_dir+GIDDYDATA
+		igz=ifile+".gz"
+
 		dir_hash={}
+		json=nil
+
 		if File.exists?(ifile)
 			json=File.read(ifile)
-			dir_hash=JSON.parse(json)
+		elsif File.exists?(igz)
+			Zlib::GzipReader.open(igz) { |gz|
+				json=gz.read
+			}
 		end
+		dir_hash=JSON.parse(json) unless json.nil?
 		dir_hash
 	end
 
@@ -184,6 +206,9 @@ class Giddy
 	end
 
 	def backup
+
+		GiddyUtils.daemonize_app
+
 		@stats[:start_time]=Time.now.to_f
 
 		@options[:include].each { |inc|

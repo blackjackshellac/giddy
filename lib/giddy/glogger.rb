@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'logger'
+require 'fileutils'
 
 class Logger
 		def die(msg)
@@ -9,14 +10,16 @@ class Logger
 		end
 end
 
-def set_logger(stream, level, rotate='daily')
-		case stream
+def set_logger(file, level, opts={:rotate=>'daily', :log_dir=>"/tmp/giddy/log"})
+		case file
 		when IO
-			$log = Logger.new(stream)
+			$log = Logger.new(file)
 		when String
-			$log = Logger.new(stream, rotate)
+			puts "opts="+opts.inspect
+			FileUtils.mkdir_p opts[:log_dir]
+			$log = Logger.new(opts[:log_dir]+"/"+file, opts[:rotate])
 		else
-			raise "invalid stream type #{stream.class}"
+			raise "invalid logger file type #{file.class}"
 		end
 		$log.level = level
 		$log.datetime_format = "%Y-%m-%d %H:%M:%S"
