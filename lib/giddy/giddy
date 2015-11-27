@@ -19,6 +19,7 @@ Kernel.trap("TERM") {
 require 'giddy'
 
 giddy=Giddy.new(ARGV)
+puts "giddy="+giddy.inspect
 
 action=giddy.options[:action]
 
@@ -37,4 +38,3 @@ when :DELETE
 else
 	$log.die "Unknown action"
 end
-

@@ -17,7 +17,7 @@ class Gentry
 	#name - dir entry name
 	#stat - dir entry stat object (packed)
 	#sha2 - dir entry content sha2
-	attr_reader :name
+	attr_reader :name, :dir
 	attr_accessor :sha2, :stat
 	attr_reader :content_dir, :content_file
 
@@ -34,30 +34,34 @@ class Gentry
 	#  o    - if String - packed_stat (mostly for testing)
 	def initialize(name, o=nil)
 		raise "name cannot be null" if name.nil?
-		@name=name
+		@name=File.basename(name)
+		@dir=File.dirname(name)
 		@sha2=nil
-		if o.nil?
-			@stat=Gstat.new(name)
-			#@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
-		elsif o.class == Array
-			#puts "o="+o.inspect
-			@sha2=o[2]
-			@stat=Gstat.new(name, o[1])
-		elsif o.class == Hash
-			@stat=Gstat.new(name, o["stat"])
-			@sha2=o["sha2"] if o.has_key?("sha2")
-		elsif o.class == String
-			@stat=Gstat.new(name, o)
-			#@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
-		else
-			raise "unsupported input parameter class #{o.class}"
-		end
+		# just cd into the @dir to stat @name
+		FileUtils.chdir(@dir) {
+			if o.nil?
+				@stat=Gstat.new(@name)
+				#@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
+			elsif o.class == Array
+				#puts "o="+o.inspect
+				@sha2=o[2]
+				@stat=Gstat.new(@name, o[1])
+			elsif o.class == Hash
+				@stat=Gstat.new(@name, o["stat"])
+				@sha2=o["sha2"] if o.has_key?("sha2")
+			elsif o.class == String
+				@stat=Gstat.new(@name, o)
+				#@sha2=file_read_op(Digest::SHA2.new(256), @name).to_s if @stat.file?
+			else
+				raise "unsupported input parameter class #{o.class}"
+			end
+		}
 		make_content_path
 	end
 
 	def eql?(other)
 		return false if other.nil?
-		return false unless @name.eql?(other.name)
+		return false unless (@name.eql?(other.name) && @dir.eql?(other.dir))
 		#return false unless @sha2.eql?(other.sha2)
 		return false if other.stat.nil?
 		@stat.eql?(other.stat)
@@ -157,4 +161,3 @@ class Gentry
 	end
 
 end
-

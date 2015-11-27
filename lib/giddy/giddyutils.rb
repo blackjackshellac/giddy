@@ -95,7 +95,7 @@ module GiddyUtils
 			:action=>:LIST,
 			:log_rotate=>'daily',
 			:log_level=>Logger::INFO,
-			:log_stream=>STDERR,
+			:log_stream=>STDOUT,
 			:backup=>Time.now.strftime("%Y%m%d"),
 			:daemonize=>false
 		}
@@ -142,12 +142,14 @@ module GiddyUtils
 
 			opts.on('-i', '--include INC', String, "Files/directories to be included") { |inc|
 				@options[:include] += inc.split(/;/)
-				@options[:include].flatten!.uniq!
+				@options[:include].flatten!
+				@options[:include].uniq!
 			}
 
 			opts.on('-x', '--exclude EXC', String, "Files/directories to be excluded") { |exc|
 				@options[:exclude] += exc.split(/;/)
-				@options[:exclude].flatten!.uniq!
+				@options[:exclude].flatten!
+				@options[:exclude].uniq!
 			}
 
 			opts.on('--ire REGEX', String, "") { |ire|
@@ -183,9 +185,7 @@ module GiddyUtils
 			}
 		}
 		op.parse!(args)
-		puts @options.inspect
-		exit 1
+		#raise @options.inspect
 		@options
 	end
 end
-

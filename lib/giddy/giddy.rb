@@ -57,12 +57,16 @@ class Giddy
 				key=:dir
 				#exc.chop!
 			end
-			@excludes[key] << exc.chop!
+			@excludes[key] << exc
 		}
 		[:file, :dir].each { |key|
 			if @excludes[key].empty?
 				@excludes[key]=nil
 			else
+				$log.debug "excludes[#{key}]="+@excludes[key].inspect
+				@excludes[key].each_index { |i|
+					@excludes[key][i]=Regexp.quote(@excludes[key][i])
+				}
 				@excludes[key]="("+@excludes[key].join("|")+")"
 				$log.debug "excludes[#{key}]="+@excludes[key]
 				@excludes[key]=/#{@excludes[key]}/
@@ -234,6 +238,50 @@ class Giddy
 		$log.info JSON.pretty_generate(@stats)
 
 	end
+
+	def giddy_find(path)
+		fre=@excludes[:file]
+		begin
+			#path.sub!(/\/?$/, "/")
+			#prefix=/^#{path}/
+			#$log.debug "Removing path prefix #{path} -> #{prefix.to_s}"
+			Find.find(path) { |find_path|
+				#$log.warn "path prefix #{prefix.to_s} not found" if find_path.sub!(prefix, "").nil?
+				name = File.basename(find_path)
+				dir = File.dirname(find_path)
+				FileUtils.chdir(dir) {
+					ge = Gentry.new(name)
+					if ge.stat.dir?
+						next if is_excluded(dir, :dir)
+						$log.info "Backup dir #{dir}/#{name}"
+						@stats[:dir]+=1
+					elsif ge.stat.file?
+						next if is_excluded(name, :file)
+						$log.debug "Backup dir #{dir}/#{name}"
+						@stats[:file]+=1
+						@stats[:bytes]+=ge.stat.size
+						save_content=true
+					else
+						$log.error "Unhandled file: #{find_path}"
+					end
+				}
+			}
+		rescue => e
+			$log.error "giddy_find: #{e.message}"
+			$log.fatal e.backtrace.join("\n")
+		end
+	end
+
+	def list
+		puts JSON.pretty_generate(@options)
+		@options[:include].each { |inc|
+			begin
+				giddy_find(inc)
+			rescue => e
+				$log.error "Error: failed to change to include #{inc}"
+				$log.error e
+				next
+			end
+		}
+	end
 end
-
-

@@ -72,7 +72,7 @@ class Gstat
 	#	Change: 2011-12-03 07:40:57.365417243 -0500
 	#	 Birth: -
 
-	#Identifies the type of stat. The return string is one of: 
+	#Identifies the type of stat. The return string is one of:
 	#“file”, “directory”, “characterSpecial”, “blockSpecial”, “fifo”, “link”, “socket”, or “unknown”.
 	def ftype
 		case @ftype
@@ -100,13 +100,28 @@ class Gstat
 		#dev_major,dev_minor,ino,nlink
 		#mode,uid,gid
 		#atime,mtime,ctime
-		"%s,%s,%s,%s,0x%02x,0x%02x,%s,%s,0%o,%s,%s,%d,%d,%d" % 
-		[ @size,@blocks,@blksize,@ftype,@dev_major,@dev_minor,@ino,@nlink,@mode,@uid,@gid,@atime.to_i,@mtime.to_i,@ctime.to_i ]
+		"%s,%s,%s,%s,0x%02x,0x%02x,%s,%s,0%o,%s,%s,%d,%d,%d" %
+		[
+			@size,
+			@blocks,
+			@blksize,
+			@ftype,
+			@dev_major,
+			@dev_minor,
+			@ino,
+			@nlink,
+			@mode,
+			@uid,
+			@gid,
+			@atime.to_i,
+			@mtime.to_i,
+			@ctime.to_i
+		]
 	end
 
 	def unpack(stats)
 		#puts "stats="+stats
-		stats=stats.split(/,/)	
+		stats=stats.split(/,/)
 		#puts stats.inspect
 		@size=stats[0].to_i
 		@blocks=stats[1].to_i
@@ -161,4 +176,3 @@ class Gstat
 		@stat_sha2.eql?(other.stat_sha2)
 	end
 end
-

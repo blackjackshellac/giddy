@@ -10,7 +10,7 @@ class Logger
 		end
 end
 
-def set_logger(file, level, opts={:rotate=>'daily', :log_dir=>"/tmp/giddy/log"})
+def set_logger(file, level, opts={:rotate=>'daily', :log_dir=>"/var/tmp/giddy/log"})
 		case file
 		when IO
 			$log = Logger.new(file)
@@ -26,5 +26,5 @@ def set_logger(file, level, opts={:rotate=>'daily', :log_dir=>"/tmp/giddy/log"})
 		$log.formatter = proc do |severity, datetime, progname, msg|
 				"#{severity} #{datetime}: #{msg}\n"
 		end
+		$log
 end
-

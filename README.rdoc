@@ -46,3 +46,7 @@ $ giddy --config compress [gzip, ...]
 $ giddy --config encrypt gpg:my@email.org
 $ giddy --config encrypt gpg:your@email.org
 
+==== Dependencies
+
+- Installed sqlite3 gem on fedora with rubygem-sqlite3 (dnf install rubygem-sqlite3)
+

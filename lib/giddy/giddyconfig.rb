@@ -12,6 +12,10 @@ class GiddyConfig
 	attr_reader :admin, :file, :log_dir
 
 	def initialize
+		set_logger(STDOUT, Logger::INFO)
+
+		$log.debug "creating GiddyConfig"
+
 		@backup_dir="/home/backup/giddy"
 		@content_dir="#{@backup_dir}/.content"
 		@stats={
@@ -37,8 +41,6 @@ class GiddyConfig
 			@log_dir="/tmp/giddy/log"
 			@file="#{ENV['HOME']}/.giddyconf"
 		end
-
-		set_logger(STDOUT, Logger::INFO)
 
 		$log.debug @backup_dir
 		$log.debug @content_dir
@@ -78,6 +80,7 @@ class GiddyConfig
 	end
 
 	def init
+		$log.debug "In giddy.config.init"
 		@backup_dir=(read "Backup directory", @backup_dir).chomp("/")
 		@content_dir=(read "Content directory", "#{@backup_dir}/.content").chomp("/")
 		@log_dir=(read "Log directory", @log_dir).chomp("/")
@@ -131,4 +134,3 @@ class GiddyConfig
 		}
 	end
 end
-
